@@ -254,27 +254,6 @@ function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <h3 className="text-sm font-semibold text-blue-900 mb-2">Demo Accounts (For Testing)</h3>
-            <div className="space-y-2 text-xs">
-              <div className="bg-white p-2 rounded border">
-                <p className="font-medium text-gray-700">Email Account:</p>
-                <p className="text-gray-600">Email: demo@barteradverts.com</p>
-                <p className="text-gray-600">Password: demo123</p>
-              </div>
-              <div className="bg-white p-2 rounded border">
-                <p className="font-medium text-gray-700">Advertiser Account:</p>
-                <p className="text-gray-600">Phone: +91 9876543210</p>
-                <p className="text-gray-600">PIN: 1234</p>
-              </div>
-              <div className="bg-white p-2 rounded border">
-                <p className="font-medium text-gray-700">Media Owner Account:</p>
-                <p className="text-gray-600">Phone: +91 9876543211</p>
-                <p className="text-gray-600">PIN: 5678</p>
-              </div>
-            </div>
-          </div>
-
           <p className="mt-6 text-center text-sm text-gray-600">
             Don't have an account?{" "}
             <a href="/register" className="text-blue-600 hover:underline font-medium">

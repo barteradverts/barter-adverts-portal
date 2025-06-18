@@ -44,40 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Demo accounts for testing
-      const demoAccounts = [
-        {
-          id: "demo-advertiser-1",
-          firstName: "Demo",
-          lastName: "Advertiser",
-          email: "demo.advertiser@example.com",
-          password: "demo123",
-          userType: "advertiser" as const,
-          verified: true,
-        },
-        {
-          id: "demo-media-1",
-          firstName: "Demo",
-          lastName: "Media Owner",
-          email: "demo.media@example.com",
-          password: "demo123",
-          userType: "media-owner" as const,
-          verified: true,
-        },
-      ]
-
-      // Check demo accounts first
-      const demoUser = demoAccounts.find((account) => account.email === email && account.password === password)
-
-      if (demoUser) {
-        const { password, ...userWithoutPassword } = demoUser
-        setUser(userWithoutPassword)
-        localStorage.setItem("auth_token", `demo_token_${demoUser.id}`)
-        localStorage.setItem("user_data", JSON.stringify(userWithoutPassword))
-        return true
-      }
-
-      // Original API call for real accounts
+      // Only use real API call for login
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -128,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("user_data")
   }
 
-  return <AuthContext.Provider value={{ user, login, register, logout, loading }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={ { user, login, register, logout, loading } }> { children } </AuthContext.Provider>
 }
 
 export function useAuth() {

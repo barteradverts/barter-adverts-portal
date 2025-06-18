@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -9,13 +9,20 @@ import { useRouter } from "next/navigation"
 
 export default function DashboardPage() {
   const router = useRouter()
-  const [user] = useState({
-    name: "Demo User",
-    phone: "+91 98765 43210",
-    type: "Advertiser",
-    joinDate: "January 2024",
-    verified: true,
-  })
+  const [user, setUser] = useState<any>(null)
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user")
+    if (storedUser) {
+      setUser(JSON.parse(storedUser))
+    } else {
+      router.replace("/login")
+    }
+  }, [router])
+
+  if (!user) {
+    return null // or a loading spinner
+  }
 
   // Static demo data to avoid prerendering issues
   const stats = [
@@ -111,6 +118,27 @@ export default function DashboardPage() {
     },
   ]
 
+  // Add resend handlers
+  const handleResendEmail = async () => {
+    if (!user.email) return;
+    await fetch("/api/auth/resend-email-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: user.email }),
+    })
+    alert("Verification email sent!")
+  }
+
+  const handleResendOTP = async () => {
+    if (!user.phoneNumber) return;
+    await fetch("/api/auth/resend-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phoneNumber: user.phoneNumber }),
+    })
+    alert("OTP sent to your phone!")
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="container mx-auto max-w-7xl">
@@ -118,12 +146,12 @@ export default function DashboardPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user.name}! 👋</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user.firstName || user.name}! 👋</h1>
               <p className="text-gray-600">Here's what's happening with your listings</p>
             </div>
             <div className="flex items-center space-x-2">
-              <Badge className="bg-green-500">{user.verified ? "Verified" : "Unverified"}</Badge>
-              <Badge variant="outline">{user.type}</Badge>
+              <Badge className="bg-green-500">{user.isPhoneVerified || user.verified ? "Verified" : "Unverified"}</Badge>
+              <Badge variant="outline">{user.userType || user.type}</Badge>
             </div>
           </div>
         </div>
@@ -230,16 +258,34 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
+                  <span className="text-gray-600">Email</span>
+                  <span className="font-semibold flex items-center gap-2">
+                    {user.email}
+                    {!user.isEmailVerified && (
+                      <Button size="sm" variant="outline" onClick={handleResendEmail} className="text-xs px-2 py-0.5 h-6">
+                        Verify
+                      </Button>
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-gray-600">Phone</span>
-                  <span className="font-semibold">{user.phone}</span>
+                  <span className="font-semibold flex items-center gap-2">
+                    {user.phoneNumber}
+                    {!user.isPhoneVerified && (
+                      <Button size="sm" variant="outline" onClick={handleResendOTP} className="text-xs px-2 py-0.5 h-6">
+                        Verify
+                      </Button>
+                    )}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Member Since</span>
-                  <span className="font-semibold">{user.joinDate}</span>
+                  <span className="font-semibold">{user.joinDate || "-"}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Account Type</span>
-                  <span className="font-semibold">{user.type}</span>
+                  <span className="font-semibold">{user.userType || user.type}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Status</span>

@@ -63,7 +63,9 @@ export async function POST(request: Request) {
         email: user.email,
         phoneNumber: user.phoneNumber,
         userType: user.userType,
-        company: user.company
+        company: user.company,
+        isEmailVerified: user.isEmailVerified,
+        isPhoneVerified: user.isPhoneVerified
       }
     });
 
