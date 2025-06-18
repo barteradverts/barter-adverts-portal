@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/app/hooks/useAuth"
 
@@ -18,7 +18,7 @@ const countries = [
   { code: "+7", name: "Russia", flag: "🇷🇺" },
 ]
 
-export default function RegisterPage() {
+function RegisterPage() {
   const router = useRouter()
   const { user, loading } = useAuth()
   const [formData, setFormData] = useState({
@@ -453,5 +453,13 @@ function PINSetup({ phoneNumber }: { phoneNumber: string }) {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function PageWrapper() {
+  return (
+    <Suspense>
+      <RegisterPage />
+    </Suspense>
   )
 }

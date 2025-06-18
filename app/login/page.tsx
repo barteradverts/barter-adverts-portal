@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { useAuth } from "@/app/hooks/useAuth"
 
@@ -13,7 +13,7 @@ const countries = [
   { code: "+81", name: "Japan", flag: "🇯🇵" },
 ]
 
-export default function LoginPage() {
+function LoginPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { user, loading } = useAuth()
@@ -363,5 +363,13 @@ function OTPLogin({ phoneNumber }: { phoneNumber: string }) {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function PageWrapper() {
+  return (
+    <Suspense>
+      <LoginPage />
+    </Suspense>
   )
 }
