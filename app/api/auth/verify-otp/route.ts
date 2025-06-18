@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/app/lib/db';
 import { User } from '@/app/models/User';
+import { generateToken } from '@/app/middleware/auth';
 
 export async function POST(request: Request) {
   try {
@@ -48,9 +49,22 @@ export async function POST(request: Request) {
     user.otpExpiresAt = undefined;
     await user.save();
 
+    // Generate JWT token
+    const token = generateToken(user._id.toString());
+
     return NextResponse.json({
       success: true,
-      message: 'Phone number verified successfully'
+      message: 'Phone number verified successfully',
+      token,
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        userType: user.userType,
+        company: user.company
+      }
     });
 
   } catch (error: any) {

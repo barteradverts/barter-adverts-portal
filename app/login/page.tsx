@@ -307,6 +307,11 @@ function OTPLogin({ phoneNumber }: { phoneNumber: string }) {
       const data = await response.json()
 
       if (data.success) {
+        // Store user data and token if present
+        if (data.user && data.token) {
+          localStorage.setItem("user", JSON.stringify(data.user))
+          localStorage.setItem("token", data.token)
+        }
         window.location.href = "/dashboard"
       } else {
         setError(data.error || "Invalid OTP")
