@@ -66,7 +66,8 @@ export async function POST(request: Request) {
         company: user.company,
         isEmailVerified: user.isEmailVerified,
         isPhoneVerified: user.isPhoneVerified
-      }
+      },
+      redirect: user.userType === 'super_admin' ? '/admin' : '/dashboard'
     });
 
   } catch (error: any) {

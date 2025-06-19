@@ -20,7 +20,26 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Users, FileText, CheckCircle, XCircle, Clock, Eye, Download, Search } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
-import type { UserApprovalData } from "@/lib/database/user-approval-queries"
+
+interface UserApprovalData {
+  id: string
+  name: string
+  email: string
+  phone: string
+  company: string
+  status: string
+  created_at: string
+  documents: any[]
+  verification_status: string
+  userType: string
+  isEmailVerified: boolean
+  isPhoneVerified: boolean
+  approvalStatus?: string
+  riskLevel?: string
+  verificationScore?: number
+  checklist?: any
+  workflowSteps?: any[]
+}
 
 export function UserApprovalDashboard() {
   const [users, setUsers] = useState<UserApprovalData[]>([])
@@ -182,11 +201,10 @@ export function UserApprovalDashboard() {
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
-      user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesFilter = filter === "all" || user.approvalStatus === filter
+    const matchesFilter = filter === "all" || user.status === filter
 
     return matchesSearch && matchesFilter
   })
@@ -278,17 +296,17 @@ export function UserApprovalDashboard() {
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
                       <h3 className="font-semibold text-lg">
-                        {user.firstName} {user.lastName}
+                        {user.name}
                       </h3>
-                      <Badge className={getStatusColor(user.approvalStatus)}>
-                        {user.approvalStatus.replace("_", " ")}
+                      <Badge className={getStatusColor(user.status || 'pending')}>
+                        {user.status || 'pending'}
                       </Badge>
-                      <Badge variant="outline" className={getRiskLevelColor(user.riskLevel)}>
-                        {user.riskLevel} risk
+                      <Badge variant="outline" className={getRiskLevelColor(user.riskLevel || 'low')}>
+                        {user.riskLevel || 'low'} risk
                       </Badge>
                       <div className="flex items-center text-sm text-gray-500">
                         <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                        {user.verificationScore}% verified
+                        {user.verificationScore || 0}% verified
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
@@ -312,7 +330,7 @@ export function UserApprovalDashboard() {
                       </div>
                       <div className="flex items-center">
                         <Clock className="w-4 h-4 mr-1 text-gray-500" />
-                        {new Date(user.createdAt).toLocaleDateString()}
+                        {new Date(user.created_at).toLocaleDateString()}
                       </div>
                     </div>
                   </div>
@@ -328,7 +346,7 @@ export function UserApprovalDashboard() {
                     <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>
-                          User Review: {user.firstName} {user.lastName}
+                          User Review: {user.name}
                         </DialogTitle>
                         <DialogDescription>Complete user verification and approval process</DialogDescription>
                       </DialogHeader>
@@ -417,7 +435,7 @@ function UserReviewModal({ user }: { user: UserApprovalData }) {
               <h4 className="font-semibold mb-2">Personal Information</h4>
               <div className="space-y-2 text-sm">
                 <div>
-                  <span className="font-medium">Name:</span> {user.firstName} {user.lastName}
+                  <span className="font-medium">Name:</span> {user.name}
                 </div>
                 <div>
                   <span className="font-medium">Email:</span> {user.email}
@@ -437,20 +455,20 @@ function UserReviewModal({ user }: { user: UserApprovalData }) {
               <h4 className="font-semibold mb-2">Verification Status</h4>
               <div className="space-y-2 text-sm">
                 <div>
-                  <span className="font-medium">Score:</span> {user.verificationScore}%
+                  <span className="font-medium">Score:</span> {user.verification_status || 0}%
                 </div>
                 <div>
                   <span className="font-medium">Risk Level:</span>
-                  <Badge variant="outline" className={`ml-2 ${getRiskLevelColor(user.riskLevel)}`}>
-                    {user.riskLevel}
+                  <Badge variant="outline" className={`ml-2 ${getRiskLevelColor(user.riskLevel || 'low')}`}>
+                    {user.riskLevel || 'low'}
                   </Badge>
                 </div>
                 <div>
                   <span className="font-medium">Status:</span>
-                  <Badge className={`ml-2 ${getStatusColor(user.approvalStatus)}`}>{user.approvalStatus}</Badge>
+                  <Badge className={`ml-2 ${getStatusColor(user.status || 'pending')}`}>{user.status || 'pending'}</Badge>
                 </div>
                 <div>
-                  <span className="font-medium">Registered:</span> {new Date(user.createdAt).toLocaleDateString()}
+                  <span className="font-medium">Registered:</span> {new Date(user.created_at).toLocaleDateString()}
                 </div>
               </div>
             </div>
@@ -484,7 +502,7 @@ function UserReviewModal({ user }: { user: UserApprovalData }) {
         <TabsContent value="checklist" className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             {Object.entries(user.checklist).map(([key, value]) => {
-              if (key === "verificationScore") return null
+              if (key === "verification_status") return null
               return (
                 <div key={key} className="flex items-center space-x-2">
                   <Checkbox checked={value as boolean} disabled />
@@ -498,26 +516,16 @@ function UserReviewModal({ user }: { user: UserApprovalData }) {
         </TabsContent>
 
         <TabsContent value="workflow" className="space-y-4">
-          <div className="space-y-3">
-            {user.workflowSteps.map((step) => (
-              <div key={step.id} className="flex items-center space-x-4 p-3 border rounded-lg">
-                <div className="flex-shrink-0">
-                  {step.status === "completed" ? (
-                    <CheckCircle className="w-5 h-5 text-green-500" />
-                  ) : step.status === "in_progress" ? (
-                    <Clock className="w-5 h-5 text-yellow-500" />
-                  ) : (
-                    <div className="w-5 h-5 border-2 border-gray-300 rounded-full" />
-                  )}
+          <div className="space-y-4">
+            {user.workflowSteps?.map((step: any) => (
+              <div key={step.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="font-medium text-sm">{step.name}</p>
+                  <p className="text-xs text-gray-500">{step.status}</p>
                 </div>
-                <div className="flex-1">
-                  <h5 className="font-medium">{step.stepName.replace("_", " ").toUpperCase()}</h5>
-                  <p className="text-sm text-gray-600">Step {step.stepOrder}</p>
-                  {step.notes && <p className="text-sm text-gray-500 mt-1">{step.notes}</p>}
-                </div>
-                <Badge variant="outline">{step.status}</Badge>
+                <Badge className={getStatusColor(step.status)}>{step.status}</Badge>
               </div>
-            ))}
+            )) || <p className="text-gray-500">No workflow steps available</p>}
           </div>
         </TabsContent>
       </Tabs>

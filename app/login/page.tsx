@@ -30,7 +30,12 @@ function LoginPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.replace("/dashboard")
+      // Check if user is super_admin and redirect accordingly
+      if (user.userType === 'super_admin') {
+        router.replace("/admin")
+      } else {
+        router.replace("/dashboard")
+      }
     }
   }, [user, loading, router])
 
@@ -68,7 +73,7 @@ function LoginPage() {
           // Store user data and redirect
           localStorage.setItem("user", JSON.stringify(data.user))
           localStorage.setItem("token", data.token)
-          window.location.href = "/dashboard"
+          window.location.href = data.redirect || "/dashboard"
         } else {
           setError(data.error || "Invalid email or password")
         }
@@ -86,7 +91,7 @@ function LoginPage() {
           // Store user data and redirect
           localStorage.setItem("user", JSON.stringify(data.user))
           localStorage.setItem("token", data.token)
-          window.location.href = "/dashboard"
+          window.location.href = data.redirect || "/dashboard"
         } else {
           setError(data.error || "Invalid phone number or PIN")
         }
@@ -291,7 +296,7 @@ function OTPLogin({ phoneNumber }: { phoneNumber: string }) {
           localStorage.setItem("user", JSON.stringify(data.user))
           localStorage.setItem("token", data.token)
         }
-        window.location.href = "/dashboard"
+        window.location.href = data.redirect || "/dashboard"
       } else {
         setError(data.error || "Invalid OTP")
       }

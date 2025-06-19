@@ -1,76 +1,40 @@
 import { type NextRequest, NextResponse } from "next/server"
+import connectDB from '@/app/lib/db'
+import { User } from '@/app/models/User'
 
 // Completely self-contained pending users data
 export async function GET(request: NextRequest) {
   try {
-    // Hardcoded demo pending users
-    const pendingUsers = [
-      {
-        id: "demo-user-1",
-        name: "Rajesh Kumar",
-        email: "rajesh@example.com",
-        company: "Kumar Enterprises",
-        phone: "+91 98765 43210",
-        status: "pending",
-        created_at: new Date().toISOString(),
-        documents: [
-          {
-            type: "gst_certificate",
-            status: "pending",
-            filename: "gst_certificate.pdf",
-          },
-          {
-            type: "pan_card",
-            status: "approved",
-            filename: "pan_card.jpg",
-          },
-        ],
-      },
-      {
-        id: "demo-user-2",
-        name: "Priya Sharma",
-        email: "priya@example.com",
-        company: "Sharma Digital Solutions",
-        phone: "+91 87654 32109",
-        status: "pending",
-        created_at: new Date().toISOString(),
-        documents: [
-          {
-            type: "business_license",
-            status: "pending",
-            filename: "business_license.pdf",
-          },
-          {
-            type: "aadhar_card",
-            status: "pending",
-            filename: "aadhar_card.jpg",
-          },
-        ],
-      },
-      {
-        id: "demo-user-3",
-        name: "Amit Patel",
-        email: "amit@example.com",
-        company: "Patel Marketing Agency",
-        phone: "+91 76543 21098",
-        status: "pending",
-        created_at: new Date().toISOString(),
-        documents: [
-          {
-            type: "gst_certificate",
-            status: "approved",
-            filename: "gst_certificate.pdf",
-          },
-          {
-            type: "pan_card",
-            status: "pending",
-            filename: "pan_card.jpg",
-          },
-        ],
-      },
-    ]
+    await connectDB()
 
-    return NextResponse.json(pendingUsers)
+    // Get users that need verification (email or phone not verified)
+    const pendingUsers = await User.find({
+      $or: [
+        { isEmailVerified: false },
+        { isPhoneVerified: false }
+      ]
+    }).select('-password -pin -otp -otpExpiresAt -emailVerificationToken -emailVerificationExpiresAt')
+
+    // Transform the data to match the expected format
+    const formattedUsers = pendingUsers.map(user => ({
+      id: user._id.toString(),
+      name: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      company: user.company || 'N/A',
+      phone: user.phoneNumber,
+      status: !user.isEmailVerified && !user.isPhoneVerified ? 'pending' : 'partial',
+      created_at: user.createdAt.toISOString(),
+      documents: [], // TODO: Add document model when available
+      verification_status: !user.isEmailVerified && !user.isPhoneVerified ? 'documents_required' : 'under_review',
+      userType: user.userType,
+      isEmailVerified: user.isEmailVerified,
+      isPhoneVerified: user.isPhoneVerified
+    }))
+
+    return NextResponse.json({
+      success: true,
+      data: formattedUsers
+    })
   } catch (error) {
     console.error("Pending users error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

@@ -1,8 +1,8 @@
 // Fallback data for demo mode
 export const fallbackAdminUser = {
-  id: "demo-admin-1",
-  name: "Demo Admin",
-  email: "admin@demo.com",
+  id: "admin-user",
+  name: "Admin User",
+  email: "admin@example.com",
   role: "super_admin",
 }
 
@@ -37,14 +37,14 @@ export const fallbackDashboardStats = {
       type: "user_approved",
       description: "User approved: Priya Sharma",
       timestamp: new Date().toISOString(),
-      admin: "Demo Admin",
+      admin: "Admin",
     },
     {
       id: "activity-4",
       type: "listing_approved",
       description: "Listing approved: Web Development",
       timestamp: new Date().toISOString(),
-      admin: "Demo Admin",
+      admin: "Admin",
     },
     {
       id: "activity-5",
@@ -247,7 +247,7 @@ export const fallbackActiveDisputes = [
 export const fallbackAuditLogs = [
   {
     id: "audit-1",
-    admin_id: "demo-admin-1",
+    admin_id: "admin-user",
     action: "approve_user",
     resource_type: "user",
     resource_id: "demo-user-1",
@@ -259,8 +259,8 @@ export const fallbackAuditLogs = [
     ip_address: "192.168.1.100",
     user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
     admin_users: {
-      name: "Demo Admin",
-      email: "admin@demo.com",
+      name: "Admin User",
+      email: "admin@example.com",
     },
   },
 ]

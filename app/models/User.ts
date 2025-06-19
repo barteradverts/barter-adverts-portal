@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema({
     },
     userType: {
         type: String,
-        enum: ['advertiser', 'media-owner'],
+        enum: ['advertiser', 'media-owner', 'super_admin'],
         required: true
     },
     company: {
@@ -101,11 +101,11 @@ userSchema.pre('save', async function (next) {
 
 // Hash PIN before saving
 userSchema.pre('save', async function (next) {
-    if (!this.isModified('pin')) return next();
+    if (!this.isModified('pin') || !this.pin) return next();
 
     try {
         const salt = await bcrypt.genSalt(10);
-        this.pin = await bcrypt.hash(this.pin, salt);
+        this.pin = await bcrypt.hash(this.pin.toString(), salt);
         next();
     } catch (error: any) {
         next(error);

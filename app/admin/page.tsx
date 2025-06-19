@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
@@ -17,8 +17,8 @@ import {
   MessageSquare,
   LogOut,
 } from "lucide-react"
-import { useAdminAuth } from "@/lib/admin-auth"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { UserApprovalDashboard } from "@/components/admin/user-approval-dashboard"
 
 const stats = [
@@ -89,7 +89,37 @@ const disputes = [
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("overview")
-  const { admin, logout } = useAdminAuth()
+  const [user, setUser] = useState<any>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    const userData = localStorage.getItem("user")
+    if (userData) {
+      try {
+        setUser(JSON.parse(userData))
+      } catch (error) {
+        console.error("Error parsing user data:", error)
+        router.replace("/login")
+      }
+    }
+  }, [router])
+
+  const handleLogout = () => {
+    localStorage.removeItem("user")
+    localStorage.removeItem("token")
+    router.replace("/login")
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -98,17 +128,17 @@ export default function AdminPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
             <p className="text-gray-600">
-              Welcome, {admin?.name} ({admin?.role.replace("_", " ")})
+              Welcome, {user?.firstName} {user?.lastName} (Super Admin)
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" asChild>
-              <Link href="/admin/audit-logs">
-                <FileText className="h-4 w-4 mr-2" />
+            <Link href="/admin/audit-logs">
+              <Button variant="outline" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
                 Audit Logs
-              </Link>
-            </Button>
-            <Button variant="outline" onClick={logout} className="flex items-center gap-2">
+              </Button>
+            </Link>
+            <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2">
               <LogOut className="h-4 w-4" />
               Logout
             </Button>

@@ -1,33 +1,52 @@
 import { type NextRequest, NextResponse } from "next/server"
+import connectDB from '@/app/lib/db'
+import { User } from '@/app/models/User'
 
 // Completely self-contained dashboard data
 export async function GET(request: NextRequest) {
   try {
-    // Hardcoded demo statistics
+    await connectDB()
+
+    // Get real statistics from database
+    const totalUsers = await User.countDocuments()
+    const pendingUsers = await User.countDocuments({
+      $or: [
+        { isEmailVerified: false },
+        { isPhoneVerified: false }
+      ]
+    })
+
+    // For now, we'll use placeholder data for listings and deals
+    // In a real application, you would have separate models for these
+    const totalListings = 0 // TODO: Replace with actual Listing model
+    const pendingListings = 0 // TODO: Replace with actual Listing model
+    const totalDeals = 0 // TODO: Replace with actual Deal model
+    const totalRevenue = 0 // TODO: Replace with actual revenue calculation
+
     const stats = {
-      totalUsers: 1247,
-      pendingUsers: 23,
-      totalListings: 892,
-      pendingListings: 15,
-      totalDeals: 456,
-      totalRevenue: 1240000,
+      totalUsers,
+      pendingUsers,
+      totalListings,
+      pendingListings,
+      totalDeals,
+      totalRevenue,
       recentActivity: [
         {
           id: "activity-1",
           type: "user_registration",
-          description: "New user registered: Rajesh Kumar",
+          description: `Total users: ${totalUsers}`,
           timestamp: new Date().toISOString(),
         },
         {
           id: "activity-2",
-          type: "listing_created",
-          description: "New listing: Digital Marketing Services",
+          type: "pending_verifications",
+          description: `Pending verifications: ${pendingUsers}`,
           timestamp: new Date().toISOString(),
         },
         {
           id: "activity-3",
-          type: "user_approved",
-          description: "User approved: Priya Sharma",
+          type: "system_status",
+          description: "System running normally",
           timestamp: new Date().toISOString(),
         },
       ],
